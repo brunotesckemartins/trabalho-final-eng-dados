@@ -1,0 +1,98 @@
+version: '3.8'
+ 
+services:
+
+  # 1. Banco de Dados Relacional (Sua Origem)
+
+  postgres-origem:
+
+    image: postgres:15
+
+    container_name: postgres-origem
+
+    environment:
+
+      POSTGRES_USER: postgres
+
+      POSTGRES_PASSWORD: admin123
+
+      POSTGRES_DB: ecommerce_db
+
+    ports:
+
+      - "5432:5432"
+
+    volumes:
+
+      - pgdata_origem:/var/lib/postgresql/data
+
+    restart: always
+ 
+  # 2. Object Storage (O Data Lake Local da Equipe)
+
+  minio:
+
+    image: minio/minio:latest
+
+    container_name: minio-datalake
+
+    environment:
+
+      MINIO_ROOT_USER: admin
+
+      MINIO_ROOT_PASSWORD: adminpassword
+
+    ports:
+
+      - "9000:9000" # Porta da API (para o Spark e Airflow conectarem)
+
+      - "9001:9001" # Porta do Console (para vocês acessarem via Navegador)
+
+    command: server /data --console-address ":9001"
+
+    volumes:
+
+      - minio_data:/data
+
+    restart: always
+ 
+  # 3. Setup Automático do MinIO (Cria os Buckets da Arquitetura Medalhão)
+
+  minio-init:
+
+    image: minio/mc:latest
+
+    container_name: minio-setup
+
+    depends_on:
+
+      - minio
+
+    entrypoint: >
+
+      /bin/sh -c "
+
+      sleep 5;
+
+      mc alias set myminio http://minio:9000 admin adminpassword;
+
+      mc mb myminio/landing;
+
+      mc mb myminio/bronze;
+
+      mc mb myminio/silver;
+
+      mc mb myminio/gold;
+
+      exit 0;
+
+      "
+ 
+volumes:
+
+  pgdata_origem:
+
+  minio_data:
+ 
+morra
+ 
