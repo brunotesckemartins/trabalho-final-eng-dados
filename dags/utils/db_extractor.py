@@ -1,43 +1,47 @@
 """
-Módulo responsável pela extração de dados da origem relacional.
+Módulo responsável pela extração de dados da origem relacional
+e validação primária de qualidade (Data Quality).
 """
 
 import pandas as pd
 from sqlalchemy import create_engine
 from io import BytesIO
 
-# Importa as configurações do nosso próprio pacote
 from dags.utils.config import DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_NAME
 
 def extract_table_to_csv_buffer(table_name: str) -> BytesIO:
     """
-    Conecta no banco PostgreSQL de origem, extrai a tabela solicitada 
-    e retorna os dados em um buffer de memória no formato bruto original (CSV).
+    Conecta no banco PostgreSQL, extrai a tabela e valida o volume de registros.
+    Retorna os dados em buffer de memória (CSV) ou interrompe em caso de anomalia.
     """
-    print(f"🔌 Conectando ao PostgreSQL para extrair: {table_name}...")
+    print(f"🔌 [Extrator] Conectando ao PostgreSQL para extrair a tabela: {table_name}")
     
-    # Monta a string de conexão baseada nas variáveis de ambiente
     engine_url = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     engine = create_engine(engine_url)
     
     try:
-        # Extrai os dados utilizando Pandas
         query = f"SELECT * FROM {table_name};"
         df = pd.read_sql_query(query, engine)
-        print(f"📊 Dados extraídos com sucesso. Linhas processadas: {len(df)}")
         
-        # Converte o DataFrame para CSV em memória (Buffer) para não gravar em disco local
+        # ==========================================
+        # DATA QUALITY CHECK (Validação de Volume)
+        # ==========================================
+        if df.empty:
+            error_msg = f"A tabela '{table_name}' está vazia no banco de origem. Abortando ingestão para evitar arquivos inúteis."
+            print(f"⚠️ [Extrator] Falha de Qualidade: {error_msg}")
+            raise ValueError(error_msg)
+            
+        print(f"📊 [Extrator] Validação concluída. Linhas processadas: {len(df)}")
+        
         csv_buffer = BytesIO()
         df.to_csv(csv_buffer, index=False)
-        
-        # Reseta o ponteiro do buffer para o início (essencial para a leitura posterior do S3)
         csv_buffer.seek(0)
         
         return csv_buffer
         
     except Exception as e:
-        print(f"❌ Erro grave na extração da tabela {table_name}: {e}")
+        print(f"❌ [Extrator] Erro durante a operação na tabela {table_name}: {str(e)}")
         raise e
     finally:
-        # Garante que a conexão com o banco seja fechada mesmo se houver erro
         engine.dispose()
+        print(f"🔒 [Extrator] Conexão com o banco encerrada.")
