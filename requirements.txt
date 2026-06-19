@@ -1,0 +1,5 @@
+# Dependências do Airflow para a Ingestão na Landing Zone
+pandas==2.2.0
+SQLAlchemy==2.0.25
+psycopg2-binary==2.9.9
+boto3==1.34.34
