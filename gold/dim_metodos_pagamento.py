@@ -1,23 +1,11 @@
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql.types import IntegerType, StringType
+import sys, os
+from pyspark.sql import SparkSession, functions as F
+sys.path.append(os.path.abspath(".."))
+from utils.scd_utils import aplicar_estrutura_scd
 
-spark = SparkSession.builder.appName("Gold_Dim_Metodos_Pagamento").getOrCreate()
-df_silver = spark.read.format("delta").load("silver/metodos_pagamento")
+spark = SparkSession.builder.appName("Gold_Dim_Metodos_Pagamento").config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension").config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog").getOrCreate()
 
-df_final = df_silver.select(
-    F.col("id_metodo").cast(IntegerType()).alias("id_metodo_pagamento"),
-    F.col("tipo_pagamento").cast(StringType()).alias("descricao_pagamento")
-).distinct() \
- .withColumn("sk_metodo_pagamento", F.md5(F.col("id_metodo_pagamento").cast("string")).cast(StringType())) \
- .withColumn("dt_alteracao", F.current_timestamp())
-
-df_final_ordenado = df_final.select(
-    "sk_metodo_pagamento", 
-    "id_metodo_pagamento", 
-    "descricao_pagamento", 
-    "dt_alteracao"
-)
-
-df_final_ordenado.write.format("delta").mode("overwrite").save("gold/dim_metodos_pagamento")
-print("Dimensao de Metodos de Pagamento processada com sucesso!")
+df = spark.read.format("parquet").load("silver/metodos_pagamento")
+df_final = df.distinct().withColumn("sk_metodo_pagamento", F.md5(F.col("id_metodo_pagamento").cast("string"))).withColumn("dt_alteracao", F.current_timestamp())
+df_final = aplicar_estrutura_scd(df_final)
+df_final.write.format("delta").mode("overwrite").save("gold/dim_metodos_pagamento")

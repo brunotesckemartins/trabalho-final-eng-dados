@@ -1,27 +1,11 @@
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql.types import IntegerType, StringType
+import sys, os
+from pyspark.sql import SparkSession, functions as F
+sys.path.append(os.path.abspath(".."))
+from utils.scd_utils import aplicar_estrutura_scd
 
-spark = SparkSession.builder.appName("Gold_Dim_Lojas").getOrCreate()
+spark = SparkSession.builder.appName("Gold_Dim_Lojas").config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension").config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog").getOrCreate()
 
-# Leitura da Silver
-df_silver = spark.read.format("delta").load("silver/lojas")
-
-# Seleção corrigida usando 'nome_loja' da Silver
-df_final = df_silver.select(
-    F.col("id_loja").cast(IntegerType()),
-    F.col("nome_loja").cast(StringType())
-).distinct() \
- .withColumn("sk_loja", F.md5(F.col("id_loja").cast("string")).cast(StringType())) \
- .withColumn("dt_alteracao", F.current_timestamp())
-
-# Seleção final garantindo a ordem das colunas
-df_final_ordenado = df_final.select(
-    "sk_loja",
-    "id_loja",
-    "nome_loja",
-    "dt_alteracao"
-)
-
-df_final_ordenado.write.format("delta").mode("overwrite").save("gold/dim_lojas")
-print("Dimensao de Lojas processada com sucesso!")
+df = spark.read.format("parquet").load("silver/lojas")
+df_final = df.distinct().withColumn("sk_loja", F.md5(F.col("id_loja").cast("string"))).withColumn("dt_alteracao", F.current_timestamp())
+df_final = aplicar_estrutura_scd(df_final)
+df_final.write.format("delta").mode("overwrite").save("gold/dim_lojas")

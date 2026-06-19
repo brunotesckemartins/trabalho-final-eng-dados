@@ -1,18 +1,11 @@
+import sys, os
 from pyspark.sql import SparkSession, functions as F
+sys.path.append(os.path.abspath(".."))
+from utils.scd_utils import aplicar_estrutura_scd
 
-spark = SparkSession.builder.appName("Gold_Dim_Produtos").getOrCreate()
+spark = SparkSession.builder.appName("Gold_Dim_Produtos").config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension").config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog").getOrCreate()
 
-# Leitura e Transformação
 df = spark.read.format("parquet").load("silver/produtos")
-
-df_final = df.select(
-    F.col("id_produto").cast("int"),
-    F.col("nome_produto").cast("string")
-).distinct() \
- .withColumn("sk_produto", F.md5(F.col("id_produto").cast("string"))) \
- .withColumn("dt_alteracao", F.current_timestamp())
-
-# Escrita
-df_final.write.format("parquet").mode("overwrite").save("gold/dim_produtos")
-
-print("Dimensao de Produtos processada com sucesso!")
+df_final = df.distinct().withColumn("sk_produto", F.md5(F.col("id_produto").cast("string"))).withColumn("dt_alteracao", F.current_timestamp())
+df_final = aplicar_estrutura_scd(df_final)
+df_final.write.format("delta").mode("overwrite").save("gold/dim_produtos")
