@@ -1,0 +1,15 @@
+[project]
+name = "trabalho-final-eng-dados"
+version = "0.1.0"
+description = "Trabalho final Engenharia de Dados - Datalake"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "boto3>=1.43.33",
+    "delta-spark==3.2.0",
+    "faker>=40.23.0",
+    "pandas>=3.0.3",
+    "psycopg2-binary>=2.9.12",
+    "pyspark==3.5.1",
+    "sqlalchemy>=2.0.51",
+]
