@@ -1,0 +1,7 @@
+=== EVIDENCIA DE EXECUCAO: CARGA INICIAL GOLD ===
+
+Tabela [Dimensao Clientes]: 999 registros carregados (Local).
+Tabela [Dimensao Produtos]: 200 registros carregados (Local).
+Tabela [Dimensao Lojas]: 25 registros carregados (Local).
+Tabela [Dimensao Vendedores]: 80 registros carregados (Local).
+Tabela [Dimensao Metodos Pagamento]: 24 registros carregados (Local).
