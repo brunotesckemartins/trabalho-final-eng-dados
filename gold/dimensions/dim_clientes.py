@@ -5,7 +5,8 @@ Job Spark: Silver -> Gold (dimensão cliente com SCD Tipo 2).
 """
 
 import sys
-sys.path.insert(0, '/home/elison/trabalho-final-eng-dados')
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F

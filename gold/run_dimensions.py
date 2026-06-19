@@ -5,7 +5,8 @@ Roda todas as dimensões Gold em sequência.
 """
 
 import sys
-sys.path.insert(0, '/home/elison/trabalho-final-eng-dados')
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from config import get_spark_session
 from gold.dimensions import dim_clientes, dim_lojas, dim_produtos, dim_vendedores, dim_metodos_pagamento

@@ -10,7 +10,8 @@ Regras:
 """
 
 import sys
-sys.path.insert(0, '/home/elison/trabalho-final-eng-dados')
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from delta.tables import DeltaTable
 from pyspark.sql import DataFrame, SparkSession

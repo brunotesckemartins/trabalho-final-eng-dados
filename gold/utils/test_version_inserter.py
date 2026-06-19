@@ -10,7 +10,8 @@ Valida:
 """
 
 import sys
-sys.path.insert(0, '/home/elison/trabalho-final-eng-dados')
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from pyspark.sql import Row
 from pyspark.sql.functions import col
