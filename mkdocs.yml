@@ -1,0 +1,13 @@
+site_name: Datalake Ecommerce Docs
+nav:
+  - Home: index.md
+  - Modelagem:
+    - Fato Vendas: fato_vendas.md
+    - Dimensões (SCD2): dimensoes.md
+  - Arquitetura:
+    - Checkpoints (Idempotência): checkpoints.md
+
+theme:
+  name: material
+  palette:
+    scheme: slate
