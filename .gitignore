@@ -5,3 +5,8 @@ __pycache__/
 .vscode/
 .DS_Store
 context.md
+*.log
+.pytest_cache/
+spark-warehouse/
+metastore_db/
+derby.log

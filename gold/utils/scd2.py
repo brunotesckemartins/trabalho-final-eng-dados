@@ -34,10 +34,12 @@ def apply_scd2(
     - Registros sem alteração: não são tocados.
     """
     now = current_timestamp()
+    is_initial = not DeltaTable.isDeltaTable(spark, dst_path)
+    start_date = lit("1900-01-01 00:00:00").cast("timestamp") if is_initial else now
 
     df_new = (
         df_new
-        .withColumn("data_inicio_vigencia", now)
+        .withColumn("data_inicio_vigencia", start_date)
         .withColumn("data_fim_vigencia", lit(None).cast("timestamp"))
         .withColumn("registro_ativo", lit(True))
         .withColumn("_gold_processed_at", now)
