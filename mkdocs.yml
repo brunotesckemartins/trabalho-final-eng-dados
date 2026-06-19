@@ -6,8 +6,15 @@ nav:
     - Dimensões (SCD2): dimensoes.md
   - Arquitetura:
     - Checkpoints (Idempotência): checkpoints.md
+  - Histórico Gold:
+    - Padronização: padronizacao.md
+    - Regras SCD2: scd2_regras.md
+    - Evidências (GOLD-10): GOLD_10.md
+    - Entrega (GOLD-13): GOLD_13.md
 
 theme:
   name: material
+  palette:
+    scheme: slate
   palette:
     scheme: slate
