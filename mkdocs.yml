@@ -1,6 +1,9 @@
 site_name: Datalake Ecommerce Docs
 nav:
   - Home: index.md
+  - Transformação:
+    - Camada Bronze: bronze.md
+    - Camada Silver: silver.md
   - Modelagem:
     - Fato Vendas: fato_vendas.md
     - Dimensões (SCD2): dimensoes.md
