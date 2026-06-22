@@ -93,3 +93,4 @@ volumes:
   pgdata_origem:
 
   minio_data:
+ 
