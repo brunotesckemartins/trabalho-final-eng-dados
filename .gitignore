@@ -10,3 +10,5 @@ context.md
 spark-warehouse/
 metastore_db/
 derby.log
+*.duckdb
+*.duckdb.wal
