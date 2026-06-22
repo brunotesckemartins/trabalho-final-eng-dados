@@ -1,6 +1,8 @@
 site_name: Datalake Ecommerce Docs
 nav:
   - Home: index.md
+  - Origem dos Dados: origem_dados.md
+  - Ingestão (Landing Zone): ingestao_landing.md
   - Modelagem:
     - Fato Vendas: fato_vendas.md
     - Dimensões (SCD2): dimensoes.md
@@ -14,7 +16,5 @@ nav:
 
 theme:
   name: material
-  palette:
-    scheme: slate
   palette:
     scheme: slate
