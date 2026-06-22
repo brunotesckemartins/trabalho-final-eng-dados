@@ -2,15 +2,12 @@ import pandas as pd
 from faker import Faker
 import random
 from datetime import datetime
+from sqlalchemy import create_engine
 
-# Inicializa o Faker
 fake = Faker('pt_BR')
 
-print("🚀 Iniciando a geração de dados massivos... Isso pode levar alguns segundos.\n")
+print("🚀 Iniciando a geração de dados massivos...\n")
 
-# ==========================================
-# 1. DIMENSÕES BÁSICAS
-# ==========================================
 categorias = ['Eletrônicos', 'Vestuário', 'Livros', 'Casa e Decoração', 'Beleza', 'Esportes', 'Brinquedos', 'Alimentos', 'Ferramentas', 'Automotivo']
 df_categorias = pd.DataFrame({'id_categoria': range(1, len(categorias) + 1), 'nome_categoria': categorias})
 
@@ -25,10 +22,6 @@ df_metodos = pd.DataFrame({
     'tipo_pagamento': ['PIX', 'Cartão de Crédito', 'Boleto', 'Cartão de Débito']
 })
 
-# ==========================================
-# 2. DIMENSÕES GERADAS DINAMICAMENTE
-# ==========================================
-# 500 Clientes
 clientes_data = []
 for i in range(1, 501):
     clientes_data.append({
@@ -40,7 +33,17 @@ for i in range(1, 501):
     })
 df_clientes = pd.DataFrame(clientes_data)
 
-# 100 Produtos
+# NOVO: Geração da tabela de endereços vinculada aos clientes criados acima
+enderecos_data = []
+for cliente in clientes_data:
+    enderecos_data.append({
+        'id_endereco': cliente['id_cliente'],
+        'id_cliente': cliente['id_cliente'],
+        'estado': fake.state_abbr(),
+        'cidade': fake.city()
+    })
+df_enderecos = pd.DataFrame(enderecos_data)
+
 produtos_data = []
 for i in range(1, 101):
     produtos_data.append({
@@ -51,7 +54,6 @@ for i in range(1, 101):
     })
 df_produtos = pd.DataFrame(produtos_data)
 
-# 20 Vendedores
 vendedores_data = []
 for i in range(1, 21):
     vendedores_data.append({
@@ -61,10 +63,7 @@ for i in range(1, 21):
     })
 df_vendedores = pd.DataFrame(vendedores_data)
 
-# ==========================================
-# 3. TABELAS FATOS (O REQUISITO DAS 10.000 LINHAS)
-# ==========================================
-qtd_pedidos = 10500 # Passando um pouco de 10k para garantir
+qtd_pedidos = 10500
 pedidos_data = []
 itens_pedido_data = []
 pagamentos_data = []
@@ -72,13 +71,11 @@ pagamentos_data = []
 id_item_global = 1
 id_pagamento_global = 1
 
-print("⏳ Gerando 10.500 Pedidos e seus respectivos Itens... Aguarde.")
+print("⏳ Gerando 10.500 Pedidos e seus respectivos Itens...")
 
 for id_pedido in range(1, qtd_pedidos + 1):
-    # Gera a data do pedido distribuída nos últimos 3 anos
     data_pedido = fake.date_time_between(start_date='-3y', end_date='now')
     
-    # Adiciona o Pedido
     pedidos_data.append({
         'id_pedido': id_pedido,
         'id_cliente': random.choice(df_clientes['id_cliente'].tolist()),
@@ -88,7 +85,6 @@ for id_pedido in range(1, qtd_pedidos + 1):
         'status_pedido': random.choices(['Concluído', 'Pendente', 'Cancelado'], weights=[80, 15, 5])[0]
     })
     
-    # Adiciona de 1 a 4 itens para este pedido
     qtd_itens = random.randint(1, 4)
     valor_total_pedido = 0
     
@@ -107,13 +103,12 @@ for id_pedido in range(1, qtd_pedidos + 1):
         })
         id_item_global += 1
         
-    # Adiciona o Pagamento do Pedido
     pagamentos_data.append({
         'id_pagamento': id_pagamento_global,
         'id_pedido': id_pedido,
         'id_metodo': random.choice(df_metodos['id_metodo'].tolist()),
         'valor_pago': round(valor_total_pedido, 2),
-        'data_pagamento': data_pedido # Assumindo pagamento no mesmo dia para simplificar
+        'data_pagamento': data_pedido
     })
     id_pagamento_global += 1
 
@@ -122,24 +117,16 @@ df_itens_pedido = pd.DataFrame(itens_pedido_data)
 df_pagamentos = pd.DataFrame(pagamentos_data)
 
 print("✅ Geração concluída com sucesso!\n")
-print(f"📊 Resumo do volume de dados gerado:")
+print("📊 Resumo do volume de dados gerado:")
 print(f"- Pedidos: {len(df_pedidos)} linhas")
 print(f"- Itens de Pedido: {len(df_itens_pedido)} linhas")
 print(f"- Pagamentos: {len(df_pagamentos)} linhas")
 print(f"- Clientes: {len(df_clientes)} linhas")
+print(f"- Endereços: {len(df_enderecos)} linhas")
 print(f"- Produtos: {len(df_produtos)} linhas")
-print("\nExemplo da Tabela Fato de Pedidos (head):")
-print(df_pedidos.head())
 
-from sqlalchemy import create_engine
-
-# ==========================================
-# 4. EXPORTAÇÃO PARA O BANCO DE DADOS
-# ==========================================
 print("\n🔌 Preparando conexão com o banco de dados...")
 
-# Estas são as credenciais temporárias. 
-# Você só precisará atualizar isso quando o Bruno subir o docker-compose.yml
 DB_USER = "postgres"
 DB_PASS = "admin123"
 DB_HOST = "localhost"
@@ -152,15 +139,15 @@ engine = create_engine(engine_url)
 print("📤 Injetando dados nas tabelas do PostgreSQL...")
 
 try:
-    # Exportando as dimensões (if_exists='append' preserva a estrutura criada pelo seu init_schema.sql)
     df_categorias.to_sql('categorias', engine, if_exists='append', index=False)
     df_lojas.to_sql('lojas', engine, if_exists='append', index=False)
     df_metodos.to_sql('metodos_pagamento', engine, if_exists='append', index=False)
     df_clientes.to_sql('clientes', engine, if_exists='append', index=False)
+    # NOVO: Injeção da tabela de endereços
+    df_enderecos.to_sql('enderecos', engine, if_exists='append', index=False)
     df_produtos.to_sql('produtos', engine, if_exists='append', index=False)
     df_vendedores.to_sql('vendedores', engine, if_exists='append', index=False)
     
-    # Exportando as Tabelas Fato
     df_pedidos.to_sql('pedidos', engine, if_exists='append', index=False)
     df_itens_pedido.to_sql('itens_pedido', engine, if_exists='append', index=False)
     df_pagamentos.to_sql('pagamentos_pedido', engine, if_exists='append', index=False)
