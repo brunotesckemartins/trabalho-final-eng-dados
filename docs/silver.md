@@ -56,10 +56,10 @@ Essa coluna é utilizada pela camada Gold para **extração incremental** (filtr
 
 ```bash
 # Processar uma tabela específica
-spark-submit bronze_to_silver.py --table pedidos
+spark-submit pipeline/bronze_to_silver.py --table pedidos
 
-# Processar todas as 10 tabelas de uma vez (conveniência para testes)
-python run_all_tables.py silver
+# Processar todas as 10 tabelas de uma vez (conveniência para testes locais)
+python pipeline/run_all_tables.py silver
 ```
 
 ## Armazenamento

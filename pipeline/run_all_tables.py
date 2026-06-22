@@ -17,7 +17,13 @@ Uso:
     python run_all_tables.py silver
 """
 
+import os
 import sys
+
+_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_pipeline = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, _root)
+sys.path.insert(0, _pipeline)
 
 import bronze_to_silver
 import landing_to_bronze

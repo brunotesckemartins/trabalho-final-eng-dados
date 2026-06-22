@@ -1,14 +1,45 @@
-.venv/
+# ─── Python ───────────────────────────────────────────────────────────────────
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# ─── Ambientes virtuais ────────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+
+# ─── Variáveis de ambiente ────────────────────────────────────────────────────
+.env
+
+# ─── IDEs ─────────────────────────────────────────────────────────────────────
 .idea/
 .vscode/
+*.iml
+
+# ─── macOS ────────────────────────────────────────────────────────────────────
 .DS_Store
-context.md
-*.log
-.pytest_cache/
+
+# ─── Airflow ──────────────────────────────────────────────────────────────────
+airflow.cfg
+airflow_settings.yaml
+logs/
+plugins/
+standalone_admin_password.txt
+
+# ─── Spark ────────────────────────────────────────────────────────────────────
 spark-warehouse/
 metastore_db/
 derby.log
+
+# ─── DuckDB ───────────────────────────────────────────────────────────────────
 *.duckdb
 *.duckdb.wal
+
+# ─── Logs e arquivos temporários ─────────────────────────────────────────────
+*.log
+*.tmp
+context.md

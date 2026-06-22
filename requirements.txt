@@ -1,5 +1,17 @@
-# Dependências do Airflow para a Ingestão na Landing Zone
+# ─── Pipeline (Bronze / Silver) ───────────────────────────────────────────────
+pyspark==3.5.1
+delta-spark==3.2.0
+
+# ─── Ingestão / Landing Zone (DAG Airflow) ────────────────────────────────────
 pandas==2.2.0
 SQLAlchemy==2.0.25
 psycopg2-binary==2.9.9
 boto3==1.34.34
+
+# ─── Geração de dados sintéticos ──────────────────────────────────────────────
+Faker==24.0.0
+
+# ─── Camada de Visualização (DuckDB + Streamlit) ──────────────────────────────
+duckdb==1.1.3
+streamlit==1.35.0
+plotly==5.22.0
