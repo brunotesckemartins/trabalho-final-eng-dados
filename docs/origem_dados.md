@@ -34,5 +34,5 @@ O banco `ecommerce_db` possui a seguinte estrutura de tabelas:
 Caso precise recriar a origem de dados, siga os passos abaixo:
 1. Garanta que o contêiner `postgres-origem` do Docker Compose está rodando.
 2. Execute o arquivo `init_schema.sql` diretamente no banco para criar a estrutura vazia.
-3. Crie um ambiente virtual Python e instale as dependências: `pip install faker pandas sqlalchemy psycopg2-binary`.
+3. Utilize o uv para instalar as dependências e criar o ambiente virtual de forma rápida: `uv sync`.
 4. Execute o script `faker_generator.py` para gerar os dados em memória e injetá-los no banco de dados.

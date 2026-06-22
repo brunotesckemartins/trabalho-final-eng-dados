@@ -9,24 +9,23 @@ Padrão de nomenclatura:
 """
 
 import sys
-sys.path.insert(0, '/home/elison/trabalho-final-eng-dados')
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from config import get_spark_session
 
 BUCKET_GOLD = "gold"
 
 GOLD_DIMENSIONS = [
-    "dim_cliente",
-    "dim_produto",
-    "dim_categoria",
-    "dim_loja",
-    "dim_vendedor",
-    "dim_metodo_pagamento",
+    "dim_clientes",
+    "dim_produtos",
+    "dim_lojas",
+    "dim_vendedores",
+    "dim_metodos_pagamento",
 ]
 
 GOLD_FACTS = [
     "fato_vendas",
-    "fato_pagamentos",
 ]
 
 GOLD_TABLE_ORDER = GOLD_DIMENSIONS + GOLD_FACTS
