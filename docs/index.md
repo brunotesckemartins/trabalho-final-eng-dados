@@ -1,38 +1,44 @@
-# 🚀 Trabalho Final: Engenharia de Dados
+# Pipeline de Engenharia de Dados — E-commerce
 
-Bem-vindo à documentação do projeto final de Engenharia de Dados! 
+Documentação técnica do projeto final de Engenharia de Dados. O pipeline implementa a **arquitetura medalhão** completa — Landing → Bronze → Silver → Gold — sobre um e-commerce sintético, com um dashboard analítico em Streamlit.
 
-Este projeto simula um pipeline completo de dados, desde a geração na origem transacional até o armazenamento no Data Lake local (MinIO) estruturado em camadas.
+## Fluxo de Dados
 
-## 🏗️ Arquitetura e Serviços do Docker Compose
-
-O arquivo `docker-compose.yml` gerencia os seguintes contêineres:
-
-1. **PostgreSQL (`postgres-origem`)**: Banco de dados relacional que atua como a origem transacional.
-   - O schema (`init_schema.sql`) é inicializado automaticamente no primeiro boot.
-2. **MinIO (`minio`)**: Object storage que atua como nosso Data Lake local.
-   - **Porta 9000**: API para conexões de dados (Spark, Airflow).
-   - **Porta 9001**: Console web para visualização dos arquivos.
-3. **Setup MinIO (`minio-init`)**: Configuração inicial automática que cria os buckets da arquitetura medalhão:
-   - `landing`
-   - `bronze`
-   - `silver`
-   - `gold`
-4. **MkDocs (`mkdocs`)**: Servidor de documentação (este site).
-   - **Porta 8000**: Acesso à documentação interativa.
-
-## 📁 Estrutura de Pastas do Projeto
-
-- [docker-compose.yml](file:///home/mendax/trabalho-final-eng-dados/docker-compose.yml): Orquestração de contêineres.
-- [init_schema.sql](file:///home/mendax/trabalho-final-eng-dados/init_schema.sql): Script SQL de criação das tabelas.
-- [faker_generator.py](file:///home/mendax/trabalho-final-eng-dados/faker_generator.py): Script Python para alimentar o banco de dados.
-- [origem_dados.md](file:///home/mendax/trabalho-final-eng-dados/origem_dados.md): Detalhes da geração e modelagem da origem.
-# Bem-vindo ao Datalake Ecommerce
-
-Documentação técnica do projeto de Engenharia de Dados, cobrindo a arquitetura em medalhão (Bronze, Silver, Gold), modelagem dimensional e os mecanismos de resiliência e qualidade de dados implementados.
+```
+PostgreSQL (origem)
+      │  Airflow: extração diária
+      ▼
+  Landing Zone  — MinIO / bucket landing  (CSV raw)
+      │  Spark: landing_to_bronze.py
+      ▼
+    Bronze      — MinIO / bucket bronze   (Delta Lake, append)
+      │  Spark: bronze_to_silver.py
+      ▼
+    Silver      — MinIO / bucket silver   (Delta Lake, upsert)
+      │  Spark: gold/run_dimensions.py + gold/facts/fato_vendas.py
+      ▼
+     Gold       — MinIO / bucket gold     (Delta Lake, SCD Tipo 2)
+      │  DuckDB lê via extensão delta + httpfs
+      ▼
+  Dashboard     — Streamlit (4 KPIs + 2 métricas)
+```
 
 ## Módulos Principais
 
-- **[Fato Vendas](fato_vendas.md):** A principal tabela de fatos do negócio, consolidando os pedidos, itens e informações de pagamentos, além das métricas agregadas.
-- **[Dimensões (SCD2)](dimensoes.md):** O modelo dimensional que armazena dados de contexto (Lojas, Clientes, Produtos, etc.) guardando o histórico temporal através de Slowly Changing Dimensions do Tipo 2.
-- **[Checkpoints e Idempotência](checkpoints.md):** Como a aplicação garante que cargas parciais não quebrem o pipeline e que dados não sejam processados em duplicidade.
+- **[Origem dos Dados](origem_dados.md):** Banco PostgreSQL sintético com 10 tabelas e ~50k linhas.
+- **[Ingestão / Landing Zone](ingestao_landing.md):** Extração via Airflow, upload CSV para MinIO.
+- **[Bronze](bronze.md):** CSV → Delta Lake (append-only, schema bruto).
+- **[Silver](silver.md):** Bronze → Delta Lake (upsert, tipado, deduplicado, regras de qualidade).
+- **[Dimensões SCD2](dimensoes.md):** Silver → Gold, 5 dimensões com Slowly Changing Dimension Tipo 2.
+- **[Fato Vendas](fato_vendas.md):** Silver + dimensões Gold → tabela fato no grão de item.
+- **[Checkpoints](checkpoints.md):** Watermark Delta Lake para cargas incrementais idempotentes.
+- **[Visualização](visualizacao.md):** DuckDB + views + dashboard Streamlit.
+
+## Serviços Docker
+
+| Serviço | Porta | Descrição |
+|---|---|---|
+| MinIO Console | 9001 | Interface do Data Lake |
+| Airflow | 8080 | Orquestração do pipeline |
+| MkDocs | 8000 | Esta documentação |
+| PostgreSQL (origem) | 5432 | Banco relacional de origem |

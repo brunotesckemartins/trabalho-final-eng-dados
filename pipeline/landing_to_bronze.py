@@ -21,6 +21,10 @@ Uso (um job por tabela, pensado para virar uma task do orquestrador):
 """
 
 import argparse
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import current_timestamp, input_file_name, lit
@@ -32,16 +36,6 @@ from schemas import TABLE_SCHEMAS, string_schema
 def _read_landing_csv(spark: SparkSession, table_name: str) -> DataFrame:
     schema = string_schema(table_name)
     src_path = landing_path(table_name)
-
-    # ==========================================
-    # CORREÇÃO DO BUG CRÍTICO
-    # Garante a leitura do arquivo gerado pela DAG (com sufixo _raw.csv)
-    # ==========================================
-    if src_path.endswith(".csv") and not src_path.endswith("_raw.csv"):
-        src_path = src_path.replace(f"{table_name}.csv", f"{table_name}_raw.csv")
-    elif not src_path.endswith(".csv"):
-        src_path = f"{src_path}/{table_name}_raw.csv"
-
     print(f"[BRONZE] Lendo CSV de origem: {src_path}")
     return (
         spark.read.option("header", "true")

@@ -33,6 +33,12 @@ def apply_scd2(
       e uma nova versão é inserida como ativa.
     - Registros sem alteração: não são tocados.
     """
+    if not business_columns:
+        raise ValueError(
+            f"apply_scd2: 'business_columns' não pode ser vazio para '{dst_path}'. "
+            "Informe ao menos uma coluna de negócio para detecção de mudanças."
+        )
+
     now = current_timestamp()
     is_initial = not DeltaTable.isDeltaTable(spark, dst_path)
     start_date = lit("1900-01-01 00:00:00").cast("timestamp") if is_initial else now

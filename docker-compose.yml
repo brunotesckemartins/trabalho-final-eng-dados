@@ -148,10 +148,7 @@ services:
       - ./plugins:/opt/airflow/plugins
       - ./config.py:/opt/airflow/config.py
       - ./schemas.py:/opt/airflow/schemas.py
-      - ./landing_to_bronze.py:/opt/airflow/landing_to_bronze.py
-      - ./bronze_to_silver.py:/opt/airflow/bronze_to_silver.py
-      - ./run_all_tables.py:/opt/airflow/run_all_tables.py
-      - ./extract_to_landing.py:/opt/airflow/extract_to_landing.py
+      - ./pipeline:/opt/airflow/pipeline
       - ./gold:/opt/airflow/gold
     command: webserver
     restart: always
@@ -176,10 +173,7 @@ services:
       - ./plugins:/opt/airflow/plugins
       - ./config.py:/opt/airflow/config.py
       - ./schemas.py:/opt/airflow/schemas.py
-      - ./landing_to_bronze.py:/opt/airflow/landing_to_bronze.py
-      - ./bronze_to_silver.py:/opt/airflow/bronze_to_silver.py
-      - ./run_all_tables.py:/opt/airflow/run_all_tables.py
-      - ./extract_to_landing.py:/opt/airflow/extract_to_landing.py
+      - ./pipeline:/opt/airflow/pipeline
       - ./gold:/opt/airflow/gold
     command: scheduler
     restart: always

@@ -72,18 +72,12 @@ def get_spark_session(app_name: str) -> SparkSession:
 
 
 def landing_path(table_name: str) -> str:
-    """
-    Convenção adotada para a Landing Zone: um CSV por tabela, sobrescrito
-    a cada extração (full load).
+    """Retorna o caminho S3A do CSV raw de uma tabela na Landing Zone.
 
-        s3a://landing/<tabela>/<tabela>.csv
-
-    ATENÇÃO: esta convenção precisa ser confirmada com o Gabriel (Issue 3).
-    Se ele particionar por data de execução, troque o retorno aqui para
-    algo como f"s3a://{BUCKET_LANDING}/{table_name}/*/{table_name}.csv"
-    — o resto do pipeline não precisa mudar.
+    Convenção: s3a://landing/<tabela>/<tabela>_raw.csv
+    Sufixo _raw.csv é o padrão adotado pelo storage_loader da DAG.
     """
-    return f"s3a://{BUCKET_LANDING}/{table_name}/{table_name}.csv"
+    return f"s3a://{BUCKET_LANDING}/{table_name}/{table_name}_raw.csv"
 
 
 def bronze_path(table_name: str) -> str:

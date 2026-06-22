@@ -30,10 +30,10 @@ Essa decisão segue o princípio da Arquitetura Medalhão: **Bronze = raw, Silve
 
 ```bash
 # Processar uma tabela específica
-spark-submit landing_to_bronze.py --table pedidos
+spark-submit pipeline/landing_to_bronze.py --table pedidos
 
-# Processar todas as 10 tabelas de uma vez (conveniência para testes)
-python run_all_tables.py bronze
+# Processar todas as 10 tabelas de uma vez (conveniência para testes locais)
+python pipeline/run_all_tables.py bronze
 ```
 
 ## Armazenamento

@@ -7,7 +7,6 @@ A base foi instanciada em um banco de dados **PostgreSQL** e estruturada com 10 
 ## 🛠️ Tecnologias Utilizadas
 * **PostgreSQL (Docker):** Hospedagem do banco relacional.
 * **Python (Pandas & SQLAlchemy):** Geração, manipulação e injeção massiva de dados.
-* **Python (Pandas & SQLAlchemy):** Manipulação e injeção massiva de dados.
 * **Faker (pt_BR):** Geração de dados fictícios em padrão brasileiro (Nomes, CPFs, Cidades, Datas).
 
 ## 📊 Estrutura do Banco (MER)
@@ -33,9 +32,7 @@ O banco `ecommerce_db` possui a seguinte estrutura de tabelas:
 
 ## 🚀 Como reproduzir este ambiente
 Caso precise recriar a origem de dados, siga os passos abaixo:
-1. Garanta que o contêiner `postgres-origem` do Docker Compose está rodando.
-2. Com a nova configuração do docker-compose, a estrutura vazia é criada automaticamente ao inicializar o banco através do script `init_schema.sql` montado em `/docker-entrypoint-initdb.d/`.
-3. Crie um ambiente virtual Python e instale as dependências: `pip install faker pandas sqlalchemy psycopg2-binary`.
-2. Execute o arquivo `init_schema.sql` diretamente no banco para criar a estrutura vazia.
-3. Utilize o uv para instalar as dependências e criar o ambiente virtual de forma rápida: `uv sync`.
-4. Execute o script `faker_generator.py` para gerar os dados em memória e injetá-los no banco de dados.
+1. Garanta que o contêiner `postgres-origem` do Docker Compose está rodando (`docker compose up -d`).
+2. O schema é criado automaticamente pelo `init_schema.sql` montado em `/docker-entrypoint-initdb.d/` no primeiro boot do container.
+3. Instale as dependências Python: `pip install -r requirements.txt` (ou `uv sync` se usar uv).
+4. Execute o script de geração: `python scripts/faker_generator.py`.
