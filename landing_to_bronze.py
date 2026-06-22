@@ -33,19 +33,23 @@ def _read_landing_csv(spark: SparkSession, table_name: str) -> DataFrame:
     schema = string_schema(table_name)
     src_path = landing_path(table_name)
 
+    # ==========================================
+    # CORREÇÃO DO BUG CRÍTICO
+    # Garante a leitura do arquivo gerado pela DAG (com sufixo _raw.csv)
+    # ==========================================
+    if src_path.endswith(".csv") and not src_path.endswith("_raw.csv"):
+        src_path = src_path.replace(f"{table_name}.csv", f"{table_name}_raw.csv")
+    elif not src_path.endswith(".csv"):
+        src_path = f"{src_path}/{table_name}_raw.csv"
+
     print(f"[BRONZE] Lendo CSV de origem: {src_path}")
     return (
         spark.read.option("header", "true")
         .option("sep", ",")
-        # enforceSchema=false faz o Spark VALIDAR o header do CSV contra o
-        # schema esperado (nomes/quantidade de colunas) e falhar com erro
-        # claro se o Gabriel mudar a extração. Sem isso, mismatch de coluna
-        # passaria batido e corromperia os dados silenciosamente.
         .option("enforceSchema", "false")
         .schema(schema)
         .csv(src_path)
     )
-
 
 def run(table_name: str, spark: SparkSession = None) -> None:
     if table_name not in TABLE_SCHEMAS:
