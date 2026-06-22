@@ -2,7 +2,10 @@ version: '3.8'
 
 services:
 
-  # 1. Banco de Dados Relacional (Sua Origem)
+  # ==========================================
+  # 1. BANCO DE DADOS RELACIONAL (Origem dos Dados)
+  # Este banco guarda as compras e transações falsas criadas pelo faker.
+  # ==========================================
   postgres-origem:
     image: postgres:15
     container_name: postgres-origem
@@ -17,7 +20,11 @@ services:
       - ./init_schema.sql:/docker-entrypoint-initdb.d/init_schema.sql
     restart: always
 
-  # 2. Object Storage (O Data Lake Local da Equipe)
+
+  # ==========================================
+  # 2. OBJECT STORAGE (Nosso Data Lake Local - MinIO)
+  # Onde os dados Landing (CSV) e Delta Lake ficarão salvos.
+  # ==========================================
   minio:
     image: minio/minio:latest
     container_name: minio-datalake
@@ -26,13 +33,13 @@ services:
       MINIO_ROOT_PASSWORD: adminpassword
     ports:
       - "9000:9000" # Porta da API (para o Spark e Airflow conectarem)
-      - "9001:9001" # Porta do Console (para acessar via navegador)
+      - "9001:9001" # Porta do Console (Acesse no seu navegador)
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
     restart: always
 
-  # 3. Setup Automático do MinIO (Cria os Buckets da Arquitetura Medalhão)
+  # Container temporário apenas para criar as pastas da Arquitetura Medalhão no MinIO.
   minio-init:
     image: minio/mc:latest
     container_name: minio-setup
@@ -49,7 +56,11 @@ services:
       exit 0;
       "
 
-  # 4. Documentação do Projeto (MkDocs)
+
+  # ==========================================
+  # 3. DOCUMENTAÇÃO (MkDocs)
+  # Hospeda a documentação obrigatória do trabalho.
+  # ==========================================
   mkdocs:
     image: squidfunk/mkdocs-material:latest
     container_name: mkdocs-docs
@@ -59,8 +70,123 @@ services:
       - .:/docs
     restart: always
 
+
+  # ==========================================
+  # 4. FERRAMENTA DE DASHBOARD (Metabase) -> NOVO!
+  # Use para criar os 4 KPIs e as 2 métricas (One Page View).
+  # Obs: Você acessa ele na porta 3000.
+  # ==========================================
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabase-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - MB_DB_TYPE=h2
+    volumes:
+      - metabase_data:/metabase.db
+    restart: always
+
+
+  # ==========================================
+  # 5. ORQUESTRAÇÃO DE DADOS (Apache Airflow) -> NOVO!
+  # ==========================================
+  
+  # O Airflow precisa de um banco próprio para controlar o que já rodou e agendar as dags.
+  postgres-airflow:
+    image: postgres:15
+    container_name: postgres-airflow
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow_password
+      POSTGRES_DB: airflow
+    ports:
+      - "5433:5432" # Mapeado para 5433 para não bater com o banco de origem (5432)!
+    volumes:
+      - pgdata_airflow:/var/lib/postgresql/data
+    restart: always
+
+  # Instala e inicializa o banco do Airflow e cria o usuário Admin.
+  airflow-init:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    container_name: airflow-init
+    user: "0:0"
+    depends_on:
+      - postgres-airflow
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow_password@postgres-airflow:5432/airflow
+      - AIRFLOW__CORE__LOAD_EXAMPLES=false
+    # Cria as tabelas do airflow e um usuário login: admin / senha: admin
+    entrypoint: >
+      /bin/sh -c "
+      airflow db migrate &&
+      airflow users create --username admin --password admin --firstname Airflow --lastname Admin --role Admin --email admin@example.com
+      "
+
+  # O cérebro do Airflow (Webserver + Interface visual na porta 8080)
+  airflow-webserver:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    container_name: airflow-webserver
+    user: "0:0"
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    ports:
+      - "8080:8080" # Interface visual do Airflow (usuário admin, senha admin)
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow_password@postgres-airflow:5432/airflow
+      - AIRFLOW__CORE__LOAD_EXAMPLES=false
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./config.py:/opt/airflow/config.py
+      - ./schemas.py:/opt/airflow/schemas.py
+      - ./landing_to_bronze.py:/opt/airflow/landing_to_bronze.py
+      - ./bronze_to_silver.py:/opt/airflow/bronze_to_silver.py
+      - ./run_all_tables.py:/opt/airflow/run_all_tables.py
+      - ./extract_to_landing.py:/opt/airflow/extract_to_landing.py
+      - ./gold:/opt/airflow/gold
+    command: webserver
+    restart: always
+
+  # O funcionário que fica monitorando o tempo e acionando as DAGs quando precisa
+  airflow-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    container_name: airflow-scheduler
+    user: "0:0"
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow_password@postgres-airflow:5432/airflow
+      - AIRFLOW__CORE__LOAD_EXAMPLES=false
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./config.py:/opt/airflow/config.py
+      - ./schemas.py:/opt/airflow/schemas.py
+      - ./landing_to_bronze.py:/opt/airflow/landing_to_bronze.py
+      - ./bronze_to_silver.py:/opt/airflow/bronze_to_silver.py
+      - ./run_all_tables.py:/opt/airflow/run_all_tables.py
+      - ./extract_to_landing.py:/opt/airflow/extract_to_landing.py
+      - ./gold:/opt/airflow/gold
+    command: scheduler
+    restart: always
+
+
 volumes:
   pgdata_origem:
   minio_data:
-  minio_data:
- 
+  metabase_data:
+  pgdata_airflow:
