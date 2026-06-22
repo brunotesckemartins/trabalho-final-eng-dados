@@ -15,9 +15,8 @@ A granularidade desta Fato é o **Item do Pedido** (`id_item`). Se um pedido pos
 ## Métricas (Facts)
 
 A tabela computa automaticamente:
-- **`valor_venda`**: `quantidade * preco_unitario`
-- **`custo_frete`**: `peso_kg * 5.0`
-- **`tempo_entrega_dias`**: `(data_entrega - data_pedido)` em dias.
+- **`valor_total_item`**: `quantidade * preco_unitario` — valor monetário de cada item vendido.
+- **`valor_total_pago_pedido`**: Soma dos pagamentos vinculados ao pedido (agregação da tabela `pagamentos_pedido`).
 
 ## Formato e Armazenamento
 
