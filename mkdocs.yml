@@ -3,6 +3,9 @@ nav:
   - Home: index.md
   - Origem dos Dados: origem_dados.md
   - Ingestão (Landing Zone): ingestao_landing.md
+  - Transformação:
+    - Camada Bronze: bronze.md
+    - Camada Silver: silver.md
   - Modelagem:
     - Fato Vendas: fato_vendas.md
     - Dimensões (SCD2): dimensoes.md
