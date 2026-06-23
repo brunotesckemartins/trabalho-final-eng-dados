@@ -15,6 +15,11 @@ services:
       POSTGRES_DB: ecommerce_db
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - pgdata_origem:/var/lib/postgresql/data
       - ./init_schema.sql:/docker-entrypoint-initdb.d/init_schema.sql
@@ -35,6 +40,12 @@ services:
       - "9000:9000" # Porta da API (para o Spark e Airflow conectarem)
       - "9001:9001" # Porta do Console (Acesse no seu navegador)
     command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD-SHELL", "mc ready local || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     volumes:
       - minio_data:/data
     restart: always
@@ -44,7 +55,8 @@ services:
     image: minio/mc:latest
     container_name: minio-setup
     depends_on:
-      - minio
+      minio:
+        condition: service_healthy
     entrypoint: >
       /bin/sh -c "
       sleep 5;
@@ -102,6 +114,11 @@ services:
       POSTGRES_DB: airflow
     ports:
       - "5433:5432" # Mapeado para 5433 para não bater com o banco de origem (5432)!
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - pgdata_airflow:/var/lib/postgresql/data
     restart: always
@@ -114,7 +131,8 @@ services:
     container_name: airflow-init
     user: "0:0"
     depends_on:
-      - postgres-airflow
+      postgres-airflow:
+        condition: service_healthy
     environment:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow_password@postgres-airflow:5432/airflow
@@ -123,7 +141,7 @@ services:
     entrypoint: >
       /bin/sh -c "
       airflow db migrate &&
-      airflow users create --username admin --password admin --firstname Airflow --lastname Admin --role Admin --email admin@example.com
+      airflow users create --username admin --password admin --firstname Airflow --lastname Admin --role Admin --email admin@example.com || true
       "
 
   # O cérebro do Airflow (Webserver + Interface visual na porta 8080)
@@ -138,10 +156,18 @@ services:
         condition: service_completed_successfully
     ports:
       - "8080:8080" # Interface visual do Airflow (usuário admin, senha admin)
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     environment:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow_password@postgres-airflow:5432/airflow
       - AIRFLOW__CORE__LOAD_EXAMPLES=false
+      - AIRFLOW__WEBSERVER__WEB_SERVER_PORT=8080
+      - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
@@ -167,6 +193,8 @@ services:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow_password@postgres-airflow:5432/airflow
       - AIRFLOW__CORE__LOAD_EXAMPLES=false
+      - AIRFLOW__WEBSERVER__WEB_SERVER_PORT=8080
+      - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
