@@ -302,4 +302,4 @@ trabalho-final-eng-dados/
 
 ## Documentação
 
-Disponível em http://localhost:8000 (MkDocs Material) ou na pasta `docs/`.
+Disponível em (https://brunotesckemartins.github.io/trabalho-final-eng-dados/) (MkDocs Material) ou na pasta `docs/`.
