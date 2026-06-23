@@ -1,6 +1,6 @@
 """
 bronze_to_silver.py
---------------------
+-------------------
 Job Spark: Bronze (Delta, raw/string) -> Silver (Delta, tipado e limpo).
 
 Responsabilidade desta camada:
