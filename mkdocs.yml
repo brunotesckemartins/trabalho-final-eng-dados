@@ -1,30 +1,121 @@
-site_name: Datalake Ecommerce — Engenharia de Dados
+﻿site_name: 'Datalake E-commerce — Engenharia de Dados'
+site_description: 'Documentação técnica do pipeline de Engenharia de Dados com Arquitetura Medalhão'
+site_author: 'Bruno Tescke Martins'
+repo_url: https://github.com/brunotesckemartins/trabalho-final-eng-dados
+repo_name: brunotesckemartins/trabalho-final-eng-dados
 
 theme:
   name: material
+  language: pt-BR
+  icon:
+    logo: material/database-cog
+    repo: fontawesome/brands/github
+  font:
+    text: Roboto
+    code: Roboto Mono
   palette:
-    scheme: slate
-    primary: indigo
-    accent: indigo
+    - media: '(prefers-color-scheme: dark)'
+      scheme: slate
+      primary: deep purple
+      accent: teal
+      toggle:
+        icon: material/brightness-4
+        name: Modo claro
+    - media: '(prefers-color-scheme: light)'
+      scheme: default
+      primary: deep purple
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Modo escuro
   features:
+    - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.sections
     - navigation.expand
+    - navigation.top
+    - navigation.tracking
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - toc.integrate
+
+plugins:
+  - search:
+      lang: pt
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_mermaid
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/brunotesckemartins/trabalho-final-eng-dados
+  generator: false
 
 nav:
-  - Home: index.md
-  - Origem dos Dados: origem_dados.md
-  - Ingestão (Landing Zone): ingestao_landing.md
-  - Transformação:
+  - '🏠 Home': index.md
+  - '🏗️ Arquitetura':
+    - Visão Geral: arquitetura.md
+    - Infraestrutura Docker: infraestrutura.md
+  - '📥 Ingestão':
+    - Origem dos Dados: origem_dados.md
+    - Landing Zone: ingestao_landing.md
+  - '🔄 Transformação':
     - Camada Bronze: bronze.md
     - Camada Silver: silver.md
-  - Modelagem Gold:
-    - Dimensões (SCD2): dimensoes.md
+  - '⭐ Modelagem Gold':
+    - Modelo de Dados: modelo_dados.md
+    - Dimensões SCD2: dimensoes.md
     - Fato Vendas: fato_vendas.md
     - Regras SCD2: scd2_regras.md
-    - Checkpoints (Idempotência): checkpoints.md
-  - Visualização:
-    - Dashboard e Virtualização: visualizacao.md
-  - Referência:
+    - Checkpoints: checkpoints.md
+  - '📊 Visualização':
+    - Dashboard: visualizacao.md
+  - '🚀 Guias':
+    - Instalação e Execução: guia_execucao.md
+    - Orquestração Airflow: orquestracao.md
+  - '📚 Referência':
     - Padronização: padronizacao.md
     - Evidências GOLD-10: GOLD_10.md
     - Entrega GOLD-13: GOLD_13.md
