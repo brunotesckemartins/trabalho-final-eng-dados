@@ -1,23 +1,85 @@
-# Fato de Vendas (fato_vendas)
+# ⭐ Camada Gold: Fato Vendas
 
-A tabela **Fato de Vendas** fica na camada `Gold` e é o ponto central para análise do negócio de Ecommerce.
+O centro do nosso Star Schema na camada Gold é a **Fato Vendas**. Ela consolida todas as métricas financeiras de um item de pedido cruzado com as chaves históricas (`Surrogate Keys`) geradas pelas Dimensões (SCD2).
 
-## Como os Dados Chegam
+---
 
-1. Os dados originais vêm da camada `Silver`, onde já foram limpos e deduplicados.
-2. É feito um *Join* com as dimensões (`dim_clientes`, `dim_lojas`, `dim_produtos`, etc.) baseando-se na **Data do Pedido** para garantir a validade temporal do mapeamento.
-3. Isso garante que se um cliente morava em São Paulo em 2024 e se mudou para o Rio em 2025, as vendas de 2024 serão sempre contabilizadas para a sua SK (Surrogate Key) em São Paulo (recurso SCD Tipo 2).
+## 🎯 Grão (Granularidade)
 
-## Granularidade
+O grão da tabela fato é **1 Item de Pedido**.
 
-A granularidade desta Fato é o **Item do Pedido** (`id_item`). Se um pedido possui 3 produtos, ele gera 3 linhas na fato.
+Cada registro representa o produto X, comprado dentro do pedido Y, na data Z.
+Se um pedido tiver 3 itens, ele gerará 3 linhas na tabela `fato_vendas`.
 
-## Métricas (Facts)
+---
 
-A tabela computa automaticamente:
-- **`valor_total_item`**: `quantidade * preco_unitario` — valor monetário de cada item vendido.
-- **`valor_total_pago_pedido`**: Soma dos pagamentos vinculados ao pedido (agregação da tabela `pagamentos_pedido`).
+## 🧩 Cruzamento de Tabelas Silver
 
-## Formato e Armazenamento
+A construção da Fato une 3 tabelas transacionais da camada Silver:
 
-Os dados são armazenados como **Delta Table** no MinIO (`s3a://gold/fato_vendas`). A utilização do formato Delta permite que a tabela aceite *appends* com controle transacional ACID (não corrompendo em falhas e permitindo *Time Travel* e auditorias).
+*   `pedidos`: Informações cabecalho (id do pedido, cliente, data, status).
+*   `itens_pedido`: Grão da fato (id item, produto, quantidade, preco).
+*   `pagamentos_pedido`: Forma de pagamento.
+
+A Fato também realiza **Join com as Dimensões Gold** para resgatar as **Surrogate Keys (SK)** vigentes na data em que a compra ocorreu.
+
+---
+
+## 🔗 Resgate de Surrogate Key no Tempo (SCD2 Point-in-Time Join)
+
+Ao construir a `fato_vendas`, não cruzamos diretamente com `id_cliente`. Em vez disso, cruzamos o ID do cliente com a `dim_clientes` verificando se a **data do pedido ocorreu dentro da vigência daquela versão de cliente**.
+
+**Exemplo da condição de Join:**
+```python
+condicao_cliente = (
+    (df_fato_temp.id_cliente == dim_clientes.id_cliente) &
+    (df_fato_temp.data_pedido >= dim_clientes.data_inicio_vigencia) &
+    (
+        (dim_clientes.data_fim_vigencia.isNull()) |
+        (df_fato_temp.data_pedido < dim_clientes.data_fim_vigencia)
+    )
+)
+```
+Isso garante precisão histórica: se um vendedor mudou de loja em 2022, as vendas de 2021 serão creditadas à loja antiga.
+
+---
+
+## 📊 Métricas Calculadas
+
+*   `valor_total_item` = (quantidade * preco_unitario)
+*   `valor_total_pago_pedido` = valor contido na tabela pagamentos_pedido.
+
+---
+
+## 🛡️ Carga Incremental com Checkpoints
+
+!!! info "Checkpointing"
+    Para evitar recalcular a base inteira a cada execução, a tabela Fato utiliza checkpoints.
+
+1.  O script verifica no MinIO qual foi o `max(data_pedido)` da última carga efetuada na Gold.
+2.  Carrega da Silver apenas dados onde `data_pedido > max(data_pedido)`.
+3.  Calcula a Fato e dá append na Gold.
+4.  Grava o novo Checkpoint no MinIO em formato JSON.
+
+> *Consulte a seção `checkpoints.md` para entender como criamos essa solução em PySpark sem depender de Structured Streaming.*
+
+---
+
+## ⚙️ Como Executar
+
+O processamento da Fato depende estritamente das dimensões atualizadas. (No Airflow, ele roda após o step de dimensões).
+
+```bash
+spark-submit gold/facts/fato_vendas.py
+```
+
+---
+
+## 💾 Armazenamento
+
+Os dados da Fato e os arquivos de Checkpoint ficam no path:
+
+```
+s3a://gold/fato_vendas/
+s3a://gold/checkpoints/fato_vendas/
+```

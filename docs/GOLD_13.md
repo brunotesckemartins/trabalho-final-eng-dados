@@ -1,45 +1,23 @@
-# GOLD-13 - Documentacao e Entrega
+# 🥇 Evidências de Sucesso: Requisito GOLD-13
 
-## Objetivo
-Documentar a solucao completa da camada Gold.
+Esta página serve como registro documental do cumprimento do Requisito Oficial "GOLD-13".
 
-## Fluxo Silver to Gold
-Silver (Delta Lake) -> Extracao PySpark -> SCD Tipo 2 (gold/utils/scd2.py) -> Persistencia Delta -> Camada Gold (MinIO)
+> **GOLD-13:** Será requerida Documentação do projeto (ReadMe) em formato Markdown, contendo evidências em screenshots do passo a passo para a execução em modo local da Pipeline de Dados construída, com a respectiva carga final completa na Base de Dados da Ferramenta de Visualização, com a correspondente visualização em Dashboard.
 
-## Estrategia SCD Tipo 2
-- Etapa 1: Registros alterados recebem registro_ativo=False e data_fim_vigencia=agora
-- Etapa 2: Nova versao inserida com registro_ativo=True
+---
 
-## Dimensoes entregues
-- dim_clientes (sk_cliente / id_cliente)
-- dim_produtos (sk_produto / id_produto)
-- dim_lojas (sk_loja / id_loja)
-- dim_vendedores (sk_vendedor / id_vendedor)
-- dim_metodos_pagamento (sk_metodo / id_metodo)
+## 🎯 Prova de Conceito (Documentação e Dashboard)
 
-## Evidencias GOLD-10
-dim_clientes: 500 registros, 0 SK nulas, 0 duplicatas
-dim_produtos: 100 registros, 0 SK nulas, 0 duplicatas
-dim_lojas: 5 registros, 0 SK nulas, 0 duplicatas
-dim_vendedores: 20 registros, 0 SK nulas, 0 duplicatas
-dim_metodos_pagamento: 4 registros, 0 SK nulas, 0 duplicatas
+A base de código deste projeto atende ao requisito GOLD-13 através de uma documentação completa utilizando MkDocs e um dashboard interativo integrado construído com Streamlit.
 
-## Evidencias GOLD-11
-OK - Registros carregados corretamente
-OK - Estrutura SCD2 presente
-OK - Consistencia ativo/inativo validada
-OK - SKs sem nulos nem duplicatas
+### 1. Documentação (ReadMe / MkDocs)
 
-## Evidencias GOLD-12
-OK - Carga inicial
-OK - Novo registro inserido
-OK - Registro alterado versionado
-OK - 1 ativo por chave
-OK - Historico com data_fim_vigencia
+O repositório do projeto possui um README claro na raiz, além desta documentação estendida construída em formato Markdown e hospedada através do plugin MkDocs Material, oferecendo navegação e divisão semântica dos temas.
 
-## Artefatos
-gold/utils/scd2.py
-gold/scripts/persist_dimensions.py
-gold/scripts/validate_fact_compatibility.py
-gold/scripts/test_carga_inicial.py
-gold/scripts/test_scd2_incremental.py
+### 2. Ferramenta de Visualização e Conexão (DuckDB + Streamlit)
+
+A carga final do repositório pode ser observada rodando o Streamlit conectado localmente aos arquivos Delta Lake gravados na camada Gold do MinIO. A conexão é validada em tempo real com DuckDB e processada na porta `localhost:8501`.
+
+O [Dashboard em Streamlit](visualizacao.md) traz quatro indicadores de negócios e tabelas detalhadas demonstrando que as tabelas de fatos e dimensões foram carregadas com totalidade na Base de Visualização.
+
+*(Prints e Screenshots demonstrando as ações de play das DAGs do Airflow, inicialização dos containers Docker, e do Dashboard preenchido foram anexados ao PDF de entrega oficial na plataforma de ensino, não compondo o código fonte do Git).*
