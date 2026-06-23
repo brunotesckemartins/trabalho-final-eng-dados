@@ -1,6 +1,6 @@
 """
 landing_to_bronze.py
----------------------
+--------------------
 Job Spark: Landing (CSV bruto) -> Bronze (Delta Lake)
 
 Responsabilidade desta camada (e só esta):
