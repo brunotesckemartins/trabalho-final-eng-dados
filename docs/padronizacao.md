@@ -1,60 +1,44 @@
-# Camada Gold — Padrões de Implementação
+# 📚 Padronização de Código e Nomenclaturas
 
-## Nomenclatura de Tabelas
+Este projeto segue diretrizes de boas práticas e convenções estabelecidas pela engenharia de dados moderna, permitindo a escalabilidade e o onboarding ágil de novos membros no time.
 
-| Tipo | Prefixo | Exemplo |
-|---|---|---|
-| Dimensão | `dim_` | `dim_clientes` |
-| Fato | `fato_` | `fato_vendas` |
+---
 
-Convenção adotada: nomes no **plural**, alinhados com os nomes das tabelas Silver de origem.
+## 🗂️ Estrutura de Diretórios e Objetos MinIO
 
-## Paths no Data Lake (MinIO)
+1.  **Buckets (Containers MinIO):** Escritos em caixa baixa e sem pontuação.
+    `landing`, `bronze`, `silver`, `gold`.
+2.  **Tabelas/Path de Objetos:** Em snake_case.
+    `fato_vendas`, `dim_clientes`, `itens_pedido`.
 
+---
+
+## 🐍 Python (Estilo de Código PySpark)
+
+*   O projeto foi construído respeitando as regras do padrão PEP-8 da linguagem Python.
+*   Bibliotecas utilizadas, como o `uv` e `pytest` seguem essa filosofia nativamente.
+
+### Nomes de Dataframes (Sufixos e Prefixos)
+Padrão claro para saber em qual ambiente ou transformação o DataFrame está num dado momento:
+
+```python
+df_bronze       # Representa os dados carregados ou apontados na camada Bronze.
+df_silver       # Representa os dados carregados ou apontados na camada Silver.
+df_gold         # Representa a junção/cálculos aplicados na Gold.
+df_atualizado   # Reflete um DF transitório sofrendo modificação ou merge.
 ```
-s3a://gold/dim_clientes/
-s3a://gold/dim_lojas/
-s3a://gold/dim_produtos/
-s3a://gold/dim_vendedores/
-s3a://gold/dim_metodos_pagamento/
-s3a://gold/fato_vendas/
-s3a://gold/checkpoints/fato_vendas/
+
+---
+
+## 📅 Variáveis de Ambiente e Conexões
+
+Credenciais sensíveis nunca estão em Hardcode no projeto.
+Todas as configurações estão isoladas no arquivo global `.env` com a seguinte padronização de nomenclatura:
+`{TECNOLOGIA}_USER`, `{TECNOLOGIA}_PASSWORD`, `{TECNOLOGIA}_HOST`.
+
+**Exemplo:**
+```bash
+POSTGRES_USER=postgres
+MINIO_ROOT_USER=admin
+AIRFLOW_USER=admin
 ```
-
-## Tabelas Implementadas
-
-### Dimensões (SCD Tipo 2)
-
-| Tabela Gold | Chave Substituta | Fonte Silver |
-|---|---|---|
-| `dim_clientes` | `sk_cliente` | `clientes` + `enderecos` |
-| `dim_lojas` | `sk_loja` | `lojas` |
-| `dim_produtos` | `sk_produto` | `produtos` + `categorias` |
-| `dim_vendedores` | `sk_vendedor` | `vendedores` + `lojas` |
-| `dim_metodos_pagamento` | `sk_metodo` | `metodos_pagamento` |
-
-### Fatos
-
-| Tabela Gold | Grão | Fonte Silver |
-|---|---|---|
-| `fato_vendas` | Item de pedido (`id_item`) | `pedidos` + `itens_pedido` + `pagamentos_pedido` |
-
-## Ordem de Carga
-
-Dimensões são sempre processadas antes dos fatos (`gold/run_dimensions.py` precede `gold/facts/fato_vendas.py`).
-
-## Colunas de Auditoria
-
-Todas as tabelas Gold recebem automaticamente:
-
-| Coluna | Tipo | Descrição |
-|---|---|---|
-| `_gold_processed_at` | Timestamp | Quando a linha entrou na Gold |
-
-Dimensões SCD Tipo 2 recebem adicionalmente:
-
-| Coluna | Tipo | Descrição |
-|---|---|---|
-| `data_inicio_vigencia` | Timestamp | Início da validade do registro |
-| `data_fim_vigencia` | Timestamp | Fim da validade (nulo = registro atual) |
-| `registro_ativo` | Boolean | `true` = versão vigente |
