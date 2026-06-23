@@ -43,3 +43,6 @@ derby.log
 *.log
 *.tmp
 context.md
+
+# ─── Arquivos binários ───────────────────────────────────────────────────────
+*.pdf
