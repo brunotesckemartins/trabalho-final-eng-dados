@@ -44,9 +44,9 @@ for tabela in TABELAS:
     df.to_csv(csv_buffer, index=False)
     s3.put_object(
         Bucket=BUCKET_LANDING,
-        Key=f"{tabela}/{tabela}.csv",
+        Key=f"{tabela}/{tabela}_raw.csv",
         Body=csv_buffer.getvalue()
     )
-    print(f"✅ '{tabela}': {len(df)} linhas -> s3://landing/{tabela}/{tabela}.csv")
+    print(f"✅ '{tabela}': {len(df)} linhas -> s3://landing/{tabela}/{tabela}_raw.csv")
 
 print("\n✅ Extração concluída!")

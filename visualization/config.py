@@ -36,19 +36,25 @@ def gold_path(table_name: str) -> str:
 
 
 def get_connection() -> duckdb.DuckDBPyConnection:
-    conn = duckdb.connect(DUCKDB_PATH)
+    conn = duckdb.connect(":memory:")
     _configure_s3(conn)
     return conn
 
 
 def _configure_s3(conn: duckdb.DuckDBPyConnection) -> None:
     endpoint = MINIO_ENDPOINT.replace("http://", "").replace("https://", "")
-    use_ssl = str(MINIO_ENDPOINT.startswith("https://")).lower()
+    use_ssl = MINIO_ENDPOINT.startswith("https://")
 
     conn.execute("INSTALL httpfs; LOAD httpfs;")
     conn.execute("INSTALL delta; LOAD delta;")
-    conn.execute(f"SET s3_endpoint='{endpoint}';")
-    conn.execute(f"SET s3_access_key_id='{MINIO_ACCESS_KEY}';")
-    conn.execute(f"SET s3_secret_access_key='{MINIO_SECRET_KEY}';")
-    conn.execute(f"SET s3_use_ssl={use_ssl};")
-    conn.execute("SET s3_url_style='path';")
+    conn.execute(f"""
+        CREATE OR REPLACE SECRET minio_secret (
+            TYPE s3,
+            KEY_ID '{MINIO_ACCESS_KEY}',
+            SECRET '{MINIO_SECRET_KEY}',
+            ENDPOINT '{endpoint}',
+            USE_SSL {str(use_ssl).lower()},
+            URL_STYLE 'path',
+            REGION 'us-east-1'
+        )
+    """)

@@ -33,3 +33,4 @@ LEFT JOIN dim_produtos          p ON f.sk_produto  = p.sk_produto
 LEFT JOIN dim_lojas             l ON f.sk_loja     = l.sk_loja
 LEFT JOIN dim_vendedores        v ON f.sk_vendedor = v.sk_vendedor
 LEFT JOIN dim_metodos_pagamento m ON f.sk_metodo   = m.sk_metodo
+;

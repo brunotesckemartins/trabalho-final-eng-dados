@@ -31,8 +31,9 @@ def create_views(conn: duckdb.DuckDBPyConnection = None) -> None:
         sql = f.read()
 
     for stmt in sql.split(";"):
-        stmt = stmt.strip()
-        if stmt and not stmt.startswith("--"):
+        lines = [l for l in stmt.splitlines() if not l.strip().startswith("--")]
+        stmt = "\n".join(lines).strip()
+        if stmt:
             conn.execute(stmt)
 
     print("[VIEWS] Views criadas com sucesso.")
