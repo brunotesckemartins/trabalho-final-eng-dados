@@ -1,5 +1,4 @@
 site_name: 'Datalake E-commerce — Engenharia de Dados'
-﻿site_name: 'Datalake E-commerce — Engenharia de Dados'
 site_description: 'Documentação técnica do pipeline de Engenharia de Dados com Arquitetura Medalhão'
 site_author: 'Bruno Tescke Martins'
 repo_url: https://github.com/brunotesckemartins/trabalho-final-eng-dados
@@ -81,7 +80,7 @@ markdown_extensions:
       custom_fences:
         - name: mermaid
           class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.tasklist:
