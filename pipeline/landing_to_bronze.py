@@ -1,7 +1,7 @@
 """
 landing_to_bronze.py
 ---------------------
-Job Spark: Landing (CSV bruto) -> Bronze (Delta Lake).
+Job Spark: Landing (CSV bruto) -> Bronze (Delta Lake)
 
 Responsabilidade desta camada (e só esta):
   - Ler o CSV exatamente como ele chega da origem (sem casting de tipo,
