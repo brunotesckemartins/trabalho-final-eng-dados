@@ -1,6 +1,6 @@
 """
 schemas.py
-----------
+---------
 Schemas explícitos das 10 tabelas da origem (espelhando init_schema.sql do
 Tiago) e a chave primária de cada uma, usada para deduplicação na Silver
 e para o MERGE (upsert) na escrita Delta.
