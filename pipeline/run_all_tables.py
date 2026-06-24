@@ -1,6 +1,6 @@
 """
 run_all_tables.py
-------------------
+-----------------
 Script de conveniência para desenvolvimento/teste local: roda a camada
 Bronze OU Silver para as 10 tabelas em sequência, reutilizando a mesma
 SparkSession (mais rápido que abrir uma sessão nova por tabela).

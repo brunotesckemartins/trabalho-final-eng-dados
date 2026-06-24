@@ -1,4 +1,4 @@
-# Pipeline de Engenharia de Dados — E-commerce
+# Pipeline de Engenharia de Dados — E-commerce:
 
 Projeto final de Engenharia de Dados. Simula o pipeline de dados de um e-commerce sintético, implementando a **arquitetura medalhão** completa (Landing → Bronze → Silver → Gold) sobre um Data Lake local, com orquestração via Apache Airflow e dashboard analítico em Streamlit.
 
