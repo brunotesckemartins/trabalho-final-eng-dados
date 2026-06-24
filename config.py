@@ -1,7 +1,8 @@
+# Configuração do ambiente Spark
 """
 config.py
 ---------
-Configuração central do módulo de transformação (Bronze/Silver).
+Configuração central do módulo de transformação (Bronze/Silver)
 
 
 """
